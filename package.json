@@ -2,9 +2,10 @@
   "name": "server2.0",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
+  "type": "module",
   "scripts": {
-    "start": "nodemon index.ts",
+    "start": "npx tcs && node index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

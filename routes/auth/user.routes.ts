@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { validate } from "../../validators/validate";
 import { userLoginValidator } from "../../validators/auth/user.validators";
-import { LoginUser,RegisterUser,VerifyEmail } from "../../controllers/user/auth/user.controllers";
+import { LoginUser,RegisterUser,VerifyEmail,UploadImage,ForgetPasswordRequest,ResetForgottenPassword } from "../../controllers/user/auth/user.controllers";
 import { validationResult } from "express-validator";
 
 
@@ -15,9 +15,10 @@ const UserRouter=Router()
 
 UserRouter.route("/register").post(RegisterUser)
 UserRouter.route("/login").post(userLoginValidator(),LoginUser)
+UserRouter.route("/imageauth").get(UploadImage)
 UserRouter.route("/refresh-token").post()
 UserRouter.route("/verify-email/:verificationToken").get(VerifyEmail)
-UserRouter.route("/forgot-password").post()
-UserRouter.route("/reset-password/:resetToken").post()
+UserRouter.route("/forgot-password").post(ForgetPasswordRequest)
+UserRouter.route("/reset-password").post(ResetForgottenPassword)
 
 export default UserRouter;

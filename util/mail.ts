@@ -27,13 +27,14 @@ const sendEmail=async(options:options)=>{
    const emailHtml=mailGenerator.generate(options.mailgenContent)
    const trnspoter=nodemailer.createTransport(
     {
+       
         service:"Gmail",
         host:"smtp.gmail.com",
         port:465,
         secure:true,
         auth:{
-            user:"shashank0865@gmail.com",
-            pass:"ykth fnjz haoy aebw"
+            user:process.env.MAIL_USER,
+            pass:process.env.MAIL_PASS
         }
     }
    )

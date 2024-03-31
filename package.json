@@ -2,10 +2,8 @@
   "name": "server2.0",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
-  "type": "module",
+  "main": "index.js",
   "scripts": {
-    "start": "npx tcs && node index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -26,6 +24,7 @@
     "express": "^4.18.3",
     "express-rate-limit": "^7.2.0",
     "express-validator": "^7.0.1",
+    "imagekit": "^5.0.0",
     "jsonwebtoken": "^9.0.2",
     "mailgen": "^2.0.28",
     "mongoose": "^8.2.2",

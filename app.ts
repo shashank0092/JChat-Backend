@@ -2,12 +2,14 @@ import cookieParser from "cookie-parser"
 import cors from "cors"
 import { rateLimit } from "express-rate-limit"
 import { createServer } from "http"
+import {Server} from "socket.io"
 import express from "express"
 import requestIP from "request-ip"
 import { ApiError } from "./util/ApiError"
 import { ApiResponse } from "./util/ApiResponse"
 import morganMiddleware from "./logs/morgan.logger"
 import bodyParser from 'body-parser';
+import {initializeSocketIo} from "./socket/index"
 
 
 
@@ -15,6 +17,16 @@ import bodyParser from 'body-parser';
 
 const app = express()
 const httpServer = createServer(app)
+
+const io=new Server(httpServer,{
+    pingTimeout:60000,
+    cors:{
+        origin:"http://localhost:5173",
+        credentials:true
+    }
+})
+app.set("io",io)
+
 app.use(bodyParser.json());
 app.use(
 
@@ -57,8 +69,16 @@ app.use(cookieParser())
 
 
 import UserRouter from "./routes/auth/user.routes"
+import ChatRouter from "./routes/chat/chat.routes"
+import MessageRouter from "./routes/message/message.routes"
+
 
 app.use("/api/v1/user", UserRouter)
+app.use("/api/v1/chat",ChatRouter)
+app.use("/api/v1/message",MessageRouter)
+
+console.log("intialzing socket")
+initializeSocketIo(io)
 
 
 

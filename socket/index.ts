@@ -2,7 +2,7 @@ import cookie from "cookie"
 import {Server,Socket} from "socket.io"
 import { ApiError } from "../util/ApiError"
 import jwt, { JwtPayload, Secret } from "jsonwebtoken"
-import { user } from "../models/auth/user.model"
+import { user } from "../models/user/user.model"
 import { ChatEventEnum,AvailableChatEvents } from "../constants"
 import {Request} from "express"
 

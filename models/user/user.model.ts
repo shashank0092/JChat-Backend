@@ -6,7 +6,7 @@ import crypto from "crypto"
 interface UserDocument extends Document{
     email:string;
     name?:string;
-    avtar?:string;
+    imagePath?:string;
     password:string;
     about:string;
     phoneNumber:string;
@@ -37,7 +37,7 @@ const userSchema=new Schema <UserDocument> (
         name:{
             type:String
         },
-        avtar:{
+        imagePath:{
             type:String
         },
         password:{
@@ -91,7 +91,7 @@ userSchema.methods.isPasswordCorrect=async function(password:string):Promise<boo
 userSchema.methods.genrateAccessToken=function(){
     const payload = {
         name: this.name,
-        id: this._id,
+        _id: this._id,
         email: this.email
     };
 

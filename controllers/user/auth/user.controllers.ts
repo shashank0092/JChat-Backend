@@ -4,7 +4,7 @@ import { asyncHandler } from "../../../util/AsyncHandler.ts";
 import { Request, Response } from "express";
 import { sendEmail, emailVerificationMailgenContent, forgotPasswordMailgenContent } from "../../../util/mail.ts";
 import crypto from "crypto"
-import { user } from "../../../models/auth/user.model.ts";
+import { user } from "../../../models/user/user.model.ts";
 import { ImageIoConfig } from "../../../util/ImageKitConfrigutaion.ts";
 import ImageKit from "imagekit";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
@@ -76,7 +76,6 @@ const LoginUser = async (req: Request, res: Response) => {
 
     }
     else {
-        console.debug("this is running for form block")
         // THIS CODE BLOCK WILL BE USEFULL WHILE USER LOGIN USING EMAIL AND PASSWORD
 
         const UserData = await user.findOne({ email })
@@ -119,7 +118,9 @@ const LoginUser = async (req: Request, res: Response) => {
 }
 
 const RegisterUser = async (req: Request, res: Response) => {
-    const { name, about, email, phoneNumber, password, avtar } = req.body
+    const { name, about, email, phoneNumber, password, imagePath } = req.body
+
+
 
     const existedUser = await user.findOne({ email })
 
@@ -130,7 +131,7 @@ const RegisterUser = async (req: Request, res: Response) => {
     }
     else {
         const newUser = await user.create({
-            email, password, name, about, phoneNumber, avtar
+            email, password, name, about, imagePath,phoneNumber 
         })
 
         const { hashedToken, tokenExpiry, unHashedToken } = await newUser.genrateTemporaryToken()
@@ -176,7 +177,7 @@ const VerifyEmail = async (req: Request, res: Response) => {
     if (!verificationToken) {
 
         res.status(400)
-            .json("Email verification token is Missing")
+            .json({message:"Email verification token is Missing"})
     }
 
     let hashedToken = crypto

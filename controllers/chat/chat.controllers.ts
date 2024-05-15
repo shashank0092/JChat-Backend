@@ -5,6 +5,7 @@ import { ApiResponse } from "../../util/ApiResponse"
 import { chat } from "../../models/chat/chat.model"
 import { emitSocketEvent } from "../../socket"
 import { ChatEventEnum } from "../../constants"
+import {CustomeRequest}  from "../../types/ReqUserObject"
 
 
 const chatCommonAggregation=()=>{
@@ -34,11 +35,11 @@ const chatCommonAggregation=()=>{
         //         from:""
         //     }
         // },
-        {
-            $addFields: {
-                lastMessage: { $first: "$lastMessage" },
-              }
-        }
+        // {
+        //     $addFields: {
+        //         lastMessage: { $first: "$lastMessage" },
+        //       }
+        // }
     ]
 }
 
@@ -163,14 +164,14 @@ const CreateAndGetOneOnOneChat=async(req:Request,res:Response)=>{
 }
 
 
-const GetAllChat=async(req:Request,res:Response)=>{
+const GetAllChat=async(req:CustomeRequest,res:Response)=>{
 
     console.log("running here")
     const chats=await chat.aggregate(
         [
             {
                 $match:{
-                    participants:{$elemMatch:{ $eq:(req as any).user.email }}
+                    participants:{$elemMatch:{ $eq:req.user.email }}
                 }
             },
             {

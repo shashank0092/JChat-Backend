@@ -1,7 +1,10 @@
 import {Router} from "express"
-// import {SendMessage} from "../../controllers/message/message.controller"
+import {SendMessage} from "../../controllers/message/message.controller"
+import { verifyJWT } from "../../middleware/auth.middlewares"
 const MessageRouter=Router()
 
-// MessageRouter.route("/sendMessag").post(SendMessage)
+MessageRouter.use(verifyJWT as any)
+MessageRouter.route("/sendMessage").post(SendMessage as any)
+
 
 export default MessageRouter

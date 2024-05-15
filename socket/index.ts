@@ -5,6 +5,7 @@ import jwt, { JwtPayload, Secret } from "jsonwebtoken"
 import { user } from "../models/user/user.model"
 import { ChatEventEnum,AvailableChatEvents } from "../constants"
 import {Request} from "express"
+import {CustomeRequest} from "../types/ReqUserObject"
 
 
 const mountJoinChatEvent=(socket:Socket)=>{
@@ -91,6 +92,7 @@ const initializeSocketIo=(io:Server)=>{
  */
 
 const emitSocketEvent=(req:Request,roomId:string,event:typeof AvailableChatEvents[0],payload:any)=>{
+    console.log("emmting this event type",event)
     req.app.get("io").in(roomId).emit(event,payload)
 }
 

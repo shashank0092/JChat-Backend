@@ -3,9 +3,10 @@ import { SearchUser,CreateAndGetOneOnOneChat,GetAllChat } from "../../controller
 import {verifyJWT} from "../../middleware/auth.middlewares"
 const ChatRouter=Router()
 
-ChatRouter.use(verifyJWT)
+ChatRouter.use(verifyJWT as any)
 
-ChatRouter.route("/").get(GetAllChat)
+
+ChatRouter.route("/").get(GetAllChat as any)
 ChatRouter.route("/serch_users").post(SearchUser)
 ChatRouter.route("/create_one_chat").post(CreateAndGetOneOnOneChat)
 

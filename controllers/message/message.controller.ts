@@ -6,7 +6,7 @@ import { emitSocketEvent } from "../../socket";
 import { ChatEventEnum } from "../../constants";
 import { CustomeRequest } from "../../types/ReqUserObject";
 import { user } from "../../models/user/user.model";
-
+import { ApiResponse } from "../../util/ApiResponse";
 /**
  * @description Utility function which returns the pipeline stages to structure the chat message schema with common lookups
  * @returns {mongoose.PipelineStage[]}
@@ -40,7 +40,6 @@ const chatMessageCommonAggregation = () => {
 
 const SendMessage = async (req: CustomeRequest, res: Response) => {
   const { chatId, content } = req.body;
-  // console.log(req.user,"thsi sis usrr")
 
   if (!content) {
     return res.json({ message: "Please Share some content" }).status(404);
@@ -53,7 +52,7 @@ const SendMessage = async (req: CustomeRequest, res: Response) => {
   }
 
   const message = await chatMessage.create({
-    sender: new mongoose.Types.ObjectId((req as any)?.user._id),
+    sender: new mongoose.Types.ObjectId(req.user._id),
     content: content || "",
     chat: new mongoose.Types.ObjectId(chatId),
     attachments: null,
@@ -71,7 +70,6 @@ const SendMessage = async (req: CustomeRequest, res: Response) => {
     ...chatMessageCommonAggregation(),
   ]);
 
-  // console.log(Chat,"this is chat object")
   const recviedMessage = messages[0];
 
   if (!recviedMessage) {
@@ -84,28 +82,55 @@ const SendMessage = async (req: CustomeRequest, res: Response) => {
     const recvierIdObject = await user
       .findOne({ email: participant })
       .select("_id");
-      console.log(recvierIdObject,"this isan")
+      
     const recvierId =await JSON.stringify(recvierIdObject?._id).replace(/"/g, '')
     
-    console.log(recvierId,"this is recvier id")
+    
     if (recvierId) {
-
-      console.log(recvierId,"this is an id inside block")
       emitSocketEvent(
         req,
         recvierId,
-        // "663f4a7129b8e83374385f81",
         ChatEventEnum.MESSAGE_RECEIVED_EVENT,
         recviedMessage
       );
     }
   });
 
-  
-
-  return res
-    .json({ message: "Message saved successfully", data: recviedMessage })
-    .status(201);
+    return res.status(200)
+          .json(new ApiResponse(200, { data: recviedMessage }, "Message saved successfully"))
 };
 
-export { SendMessage };
+
+const getAllMessage=async(req:CustomeRequest,res:Response)=>{
+  console.log("runnin get all message route")
+  const {chatId}=req.params
+
+  const selectedChat=await chat.findById(chatId)
+
+  if(!selectedChat){
+    return res.json({message:"Chat is not avlaible"}).status(404)
+  }
+
+  const messages=await chatMessage.aggregate(
+    [
+     {
+      $match:{
+        chat:new mongoose.Types.ObjectId(chatId)
+      }
+     },
+     ...chatMessageCommonAggregation(),
+    //  {
+    //   $sort:{
+    //     createdAt: -1,
+    //   }
+    //  }
+    ]
+  )
+
+  return res.status(200)
+            .json(new ApiResponse(200,{data:messages},"Message Recived Succesfully"))
+
+  
+}
+
+export { SendMessage,getAllMessage };

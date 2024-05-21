@@ -5,7 +5,6 @@ import jwt, { JwtPayload, Secret } from "jsonwebtoken"
 import { user } from "../models/user/user.model"
 import { ChatEventEnum,AvailableChatEvents } from "../constants"
 import {Request} from "express"
-import {CustomeRequest} from "../types/ReqUserObject"
 
 
 const mountJoinChatEvent=(socket:Socket)=>{
@@ -17,6 +16,7 @@ const mountJoinChatEvent=(socket:Socket)=>{
 
 const mountParticipantTypingEvent=(socket:Socket)=>{
     socket.on(ChatEventEnum.TYPING_EVENT,(chatId):void=>{
+        // socket.emit(ChatEventEnum.TYPING_EVENT,"shukla boi")
         socket.in(chatId).emit(ChatEventEnum.TYPING_EVENT,chatId)
     })
 }

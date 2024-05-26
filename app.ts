@@ -11,10 +11,6 @@ import morganMiddleware from "./logs/morgan.logger"
 import bodyParser from 'body-parser';
 import {initializeSocketIo} from "./socket/index"
 
-
-
-
-
 const app = express()
 const httpServer = createServer(app)
 
@@ -26,7 +22,7 @@ const io=new Server(httpServer,{
     }
 })
 app.set("io",io)
-
+app.use(express.static("public"))
 app.use(bodyParser.json());
 app.use(
 
@@ -71,13 +67,16 @@ app.use(cookieParser())
 import UserRouter from "./routes/auth/user.routes"
 import ChatRouter from "./routes/chat/chat.routes"
 import MessageRouter from "./routes/message/message.routes"
+import path from "path"
 
 
 app.use("/api/v1/user", UserRouter)
 app.use("/api/v1/chat",ChatRouter)
 app.use("/api/v1/message",MessageRouter)
 
-console.log("intialzing socket")
+const publicPath=path.join(__dirname,"public")
+export const imagePath=path.join(publicPath,"images")
+
 initializeSocketIo(io)
 
 

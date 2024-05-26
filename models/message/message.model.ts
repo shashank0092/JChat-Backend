@@ -1,18 +1,14 @@
 import mongoose,{Schema,Model,Document,Types} from "mongoose";
+import { MessageFileType } from "../../types/FileType";
 
 interface ChatMessageDocument extends Document{
     sender:Schema.Types.ObjectId,
     content:string,
-    attachments:Attachments[],
+    attachments:MessageFileType[],
     chat:Types.ObjectId
-
-
 }
 
-interface Attachments{
-    url:string,
-    localPath:string
-}
+
 
 const chatMessageSchema=new Schema<ChatMessageDocument>(
     {

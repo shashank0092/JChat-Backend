@@ -7,6 +7,8 @@ import { ChatEventEnum } from "../../constants";
 import { CustomeRequest } from "../../types/ReqUserObject";
 import { user } from "../../models/user/user.model";
 import { ApiResponse } from "../../util/ApiResponse";
+import { getLocalPath, getStaticFilePath } from "../../util/helper";
+import {MessageFileType} from "../../types/FileType"
 /**
  * @description Utility function which returns the pipeline stages to structure the chat message schema with common lookups
  * @returns {mongoose.PipelineStage[]}
@@ -39,13 +41,26 @@ const chatMessageCommonAggregation = () => {
 };
 
 const SendMessage = async (req: CustomeRequest, res: Response) => {
-  const { chatId, content } = req.body;
+  const {chatId}=req.params
+  const {  content } = req.body;
 
-  if (!content) {
+  if (!content && !((req as any).files?.attachments?.length)  ) {
     return res.json({ message: "Please Share some content" }).status(404);
   }
 
   const selectedChat = await chat.findById(chatId);
+  console.log(selectedChat,"this is all selected chat")
+  const messageFiles:MessageFileType[]=[]
+
+  console.log("run untill here")
+  if(req.files && (req as any).files?.attachments?.length>0  ){
+    (req as any).files?.attachments?.map((attachment:any)=>{
+      messageFiles.push({
+        url:getStaticFilePath(req,attachment.filename),
+        localPath:getLocalPath(attachment.fileName)
+      })
+    })
+  }
 
   if (!selectedChat) {
     return res.json({ message: "Chat doesn't exist" }).status(404);
@@ -55,7 +70,7 @@ const SendMessage = async (req: CustomeRequest, res: Response) => {
     sender: new mongoose.Types.ObjectId(req.user._id),
     content: content || "",
     chat: new mongoose.Types.ObjectId(chatId),
-    attachments: null,
+    attachments: messageFiles,
   });
 
   const Chat = await chat.findByIdAndUpdate(chatId, {

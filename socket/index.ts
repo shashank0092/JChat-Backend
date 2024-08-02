@@ -17,12 +17,14 @@ const mountJoinChatEvent=(socket:Socket)=>{
 const mountParticipantTypingEvent=(socket:Socket)=>{
     socket.on(ChatEventEnum.TYPING_EVENT,(chatId):void=>{
         // socket.emit(ChatEventEnum.TYPING_EVENT,"shukla boi")
+        console.log("typing is started event")
         socket.in(chatId).emit(ChatEventEnum.TYPING_EVENT,chatId)
     })
 }
 
 const mountParticipantStoppedTypingEvent=(socket:Socket)=>{
     socket.on(ChatEventEnum.STOP_TYPING_EVENT,(chatId):void=>{
+        console.log("typing is topped")
         socket.in(chatId).emit(ChatEventEnum.STOP_TYPING_EVENT,chatId)
     })
 }

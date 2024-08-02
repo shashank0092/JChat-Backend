@@ -41,6 +41,7 @@ const chatMessageCommonAggregation = () => {
 };
 
 const SendMessage = async (req: CustomeRequest, res: Response) => {
+  console.log("this is running for sending message image for app")
   const {chatId}=req.params
   const {  content } = req.body;
 

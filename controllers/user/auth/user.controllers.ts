@@ -1,11 +1,11 @@
-import { ApiError } from "../../../util/ApiError.ts";
-import { ApiResponse } from "../../../util/ApiResponse.ts";
-import { asyncHandler } from "../../../util/AsyncHandler.ts";
+import { ApiError } from "../../../util/ApiError";
+import { ApiResponse } from "../../../util/ApiResponse";
+import { asyncHandler } from "../../../util/AsyncHandler";
 import { Request, Response } from "express";
-import { sendEmail, emailVerificationMailgenContent, forgotPasswordMailgenContent } from "../../../util/mail.ts";
+import { sendEmail, emailVerificationMailgenContent, forgotPasswordMailgenContent } from "../../../util/mail";
 import crypto from "crypto"
-import { user } from "../../../models/user/user.model.ts";
-import { ImageIoConfig } from "../../../util/ImageKitConfrigutaion.ts";
+import { user } from "../../../models/user/user.model";
+import { ImageIoConfig } from "../../../util/ImageKitConfrigutaion";
 import ImageKit from "imagekit";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 

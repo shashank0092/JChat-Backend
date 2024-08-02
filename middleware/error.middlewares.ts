@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import logger from "../logs/winston.logger.ts"
-import {ApiError} from "../util/ApiError.ts"
+import logger from "../logs/winston.logger"
+import {ApiError} from "../util/ApiError"
 import {Request,Response,NextFunction} from "express"
 
 

@@ -17,7 +17,7 @@ const httpServer = createServer(app)
 const io=new Server(httpServer,{
     pingTimeout:60000,
     cors:{
-        origin:"https://j-chat-omega.vercel.app/",
+        origin:"*",
         credentials:true
     }
 })
@@ -28,7 +28,7 @@ app.use(
 
     cors(
         {
-            origin: "https://j-chat-omega.vercel.app/",
+            origin: "*",
             credentials: true
         }
 

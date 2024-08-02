@@ -18,7 +18,7 @@ const io=new Server(httpServer,{
     pingTimeout:60000,
     cors:{
         origin:"*",
-        credentials:true
+        // credentials:true
     }
 })
 app.set("io",io)
@@ -29,7 +29,7 @@ app.use(
     cors(
         {
             origin: "*",
-            credentials: true
+            // credentials: true
         }
 
     )

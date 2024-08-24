@@ -43,7 +43,9 @@ const chatMessageCommonAggregation = () => {
 const SendMessage = async (req: CustomeRequest, res: Response) => {
   console.log("this is running for sending message image for app")
   const {chatId}=req.params
-  const {  content } = req.body;
+  const { content } = req.body;
+
+  console.log(content,"this is con")
 
   if (!content && !((req as any).files?.attachments?.length)  ) {
     return res.json({ message: "Please Share some content" }).status(404);
@@ -67,11 +69,13 @@ const SendMessage = async (req: CustomeRequest, res: Response) => {
     return res.json({ message: "Chat doesn't exist" }).status(404);
   }
 
+  console.log(req.uploadedKeys,"this is ir")
+
   const message = await chatMessage.create({
     sender: new mongoose.Types.ObjectId(req.user._id),
     content: content || "",
     chat: new mongoose.Types.ObjectId(chatId),
-    attachments: messageFiles,
+    attachments: req.uploadedKeys,
   });
 
   const Chat = await chat.findByIdAndUpdate(chatId, {

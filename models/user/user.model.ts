@@ -3,10 +3,36 @@ import bcrypt from "bcrypt"
 import jwt, { Secret } from "jsonwebtoken"
 import crypto from "crypto"
 
+interface Attachment {
+    url: string;
+    type: string;
+    name:string;
+    size:Number
+}
+
+const attachmentSchema = new Schema<Attachment>({
+    url: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      required: true,
+    },
+    name:{
+        type:String,
+        required:true
+    },
+    size:{
+        type:Number,
+        required:true
+    }
+  });
+
 interface UserDocument extends Document{
     email:string;
     name?:string;
-    imagePath?:string;
+    attachment?:Attachment;
     password:string;
     about:string;
     phoneNumber:string;
@@ -37,8 +63,8 @@ const userSchema=new Schema <UserDocument> (
         name:{
             type:String
         },
-        imagePath:{
-            type:String
+        attachment:{
+            type:[attachmentSchema]
         },
         password:{
             type:String,

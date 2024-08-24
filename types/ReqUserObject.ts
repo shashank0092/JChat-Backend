@@ -9,6 +9,8 @@ export interface CustomeRequest extends Request {
         imagePath?: string;
         about: string;
         phoneNumber: string;
-      }
+        
+      },
+      uploadedKeys?:{ url: string; type: string,name:string,size:Number }[]
 
 }

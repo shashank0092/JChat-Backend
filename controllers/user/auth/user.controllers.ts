@@ -8,8 +8,7 @@ import { user } from "../../../models/user/user.model";
 import { ImageIoConfig } from "../../../util/ImageKitConfrigutaion";
 import ImageKit from "imagekit";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
-
-
+import {CustomeRequest} from "../../../types/ReqUserObject"
 
 interface TokenPair {
     accessToken: string;
@@ -117,9 +116,9 @@ const LoginUser = async (req: Request, res: Response) => {
     }
 }
 
-const RegisterUser = async (req: Request, res: Response) => {
-    const { name, about, email, phoneNumber, password, imagePath } = req.body
-
+const RegisterUser = async (req: CustomeRequest, res: Response) => {
+    const { name, about, email, phoneNumber, password } = req.body
+    console.log(req.files,"this is all file")
 
 
     const existedUser = await user.findOne({ email })
@@ -131,12 +130,13 @@ const RegisterUser = async (req: Request, res: Response) => {
     }
     else {
         const newUser = await user.create({
-            email, password, name, about, imagePath,phoneNumber 
+            email, password, name, about,attachment:req.uploadedKeys ,phoneNumber 
         })
 
         const { hashedToken, tokenExpiry, unHashedToken } = await newUser.genrateTemporaryToken()
         newUser.emailVerificationToken = hashedToken
         newUser.emailVerificationExpiry = tokenExpiry
+        
         await newUser.save({ validateBeforeSave: true })
         console.log(newUser, "this is new user that was genrated")
 

@@ -1,37 +1,68 @@
-import multer from "multer"
-import path from "path"
-import { getLocalPath } from "../util/helper"
-import { imagePath } from "../app"
+import { NextFunction, Request, Response } from "express"
+import { CustomeRequest } from "../types/ReqUserObject"
+import { PutObjectCommand } from "@aws-sdk/client-s3"
+import { s3Client } from "../util/S3Client"
 
 
-const publicDir=path.join(__dirname,"public")
-const imagDir=path.join(publicDir,"images")
-const storage=multer.diskStorage({
-    destination:function(req,filles,cb){
-        cb(null,imagePath)
-    },
-    filename:function(req,file,cb){
-        let fileExtenstion=""
-        if(file.originalname.split(".").length>1){
-            fileExtenstion=file.originalname.substring(file.originalname.indexOf("."))
+
+export const ImageUploader = (ImagePath) => {
+
+    return async (req: CustomeRequest, res: Response, next: NextFunction) => {
+
+        let uploadedKeys: { url: string; type: string, name: string, size: Number }[] = [];
+        
+
+        if (req.files) {
+            
+
+            (req as any).files?.attachments?.map(async (attachment: Express.Multer.File) => {
+
+                let fileExtenstion;
+                let email;
+                if(ImagePath=="media"){
+                    email=req.user?.email.split("@")[0]
+                }
+                else if(ImagePath=="user"){
+                    email=req.body?.email.split("@")[0]
+                }
+                if (attachment.originalname.split(".").length > 1) {
+                    fileExtenstion = attachment.originalname.substring(attachment.originalname.lastIndexOf(".") + 1)
+                }
+                else {
+                    fileExtenstion = "other"
+                }
+                const key = `${email}/${ImagePath}/${fileExtenstion}/${attachment.originalname + Date.now()}`;
+                uploadedKeys.push({
+                    url: key,
+                    type: fileExtenstion,
+                    name: attachment.originalname,
+                    size: attachment.size,
+                })
+                req.uploadedKeys = uploadedKeys
+                const command = new PutObjectCommand({
+                    Bucket: "devjchat",
+                    Key: key,
+                    Body: attachment.buffer,
+                    ContentType: attachment.mimetype
+                })
+                const s3Response = await s3Client.send(command)
+
+
+                if (s3Response.$metadata.httpStatusCode == 200) {
+                    console.log(s3Response)
+                }
+                else {
+                    return res.json({ message: "Not Able To Upload File At S3", status: 400 })
+                }
+
+            })
         }
-        const fileNameWithoutExtenstion=file.originalname   
-                                            .toLowerCase()
-                                            .split(" ")
-                                            .join("-")
-                                            ?.split(".")[0]
-        cb(null,
-            fileNameWithoutExtenstion+
-            Date.now()+
-            Math.ceil(Math.random()*1e5)+
-            fileExtenstion )
-                                            
-    }
-})
 
-export const upload=multer({
-    storage,
-    limits:{
-        fileSize:1*1000*1000
+
+        next()
     }
-})
+}
+
+
+
+

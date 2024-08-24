@@ -10,6 +10,34 @@ interface Attachment {
     size:Number
 }
 
+interface MediaLink{
+    url:string,
+    type:string,
+    name:string,
+    size:Number
+}
+const mediaLinkSchema=new Schema<MediaLink>({
+    url: {
+        type: String,
+        required: true,
+      },
+      type: {
+        type: String,
+        required: true,
+      },
+      name:{
+          type:String,
+          required:true
+      },
+      size:{
+          type:Number,
+          required:true
+    }
+   
+},
+{timestamps:true}
+)
+
 const attachmentSchema = new Schema<Attachment>({
     url: {
       type: String,
@@ -42,6 +70,7 @@ interface UserDocument extends Document{
     forgotPasswordExpiry?: Date;
     emailVerificationToken?: string;
     emailVerificationExpiry?: Date;
+    mediaLink:MediaLink
     
     isPasswordCorrect(password: string): Promise<boolean>;
     genrateAccessToken(): string;
@@ -65,6 +94,10 @@ const userSchema=new Schema <UserDocument> (
         },
         attachment:{
             type:[attachmentSchema]
+        },
+        mediaLink:{
+            type:[mediaLinkSchema],
+            default:[]
         },
         password:{
             type:String,

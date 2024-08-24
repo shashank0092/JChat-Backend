@@ -8,7 +8,14 @@ import { CustomeRequest } from "../../types/ReqUserObject";
 import { user } from "../../models/user/user.model";
 import { ApiResponse } from "../../util/ApiResponse";
 import { getLocalPath, getStaticFilePath } from "../../util/helper";
-import {MessageFileType} from "../../types/FileType"
+import { MessageFileType } from "../../types/FileType"
+import { getSignedUrl } from "@aws-sdk/cloudfront-signer"
+import dotenv from "dotenv"
+
+
+dotenv.config({
+  path: "./.env"
+})
 /**
  * @description Utility function which returns the pipeline stages to structure the chat message schema with common lookups
  * @returns {mongoose.PipelineStage[]}
@@ -42,41 +49,51 @@ const chatMessageCommonAggregation = () => {
 
 const SendMessage = async (req: CustomeRequest, res: Response) => {
   console.log("this is running for sending message image for app")
-  const {chatId}=req.params
+  const { chatId } = req.params
   const { content } = req.body;
 
-  console.log(content,"this is con")
+  console.log(content, "this is con")
 
-  if (!content && !((req as any).files?.attachments?.length)  ) {
+  if (!content && !((req as any).files?.attachments?.length)) {
     return res.json({ message: "Please Share some content" }).status(404);
   }
 
   const selectedChat = await chat.findById(chatId);
-  console.log(selectedChat,"this is all selected chat")
-  const messageFiles:MessageFileType[]=[]
-
-  console.log("run untill here")
-  if(req.files && (req as any).files?.attachments?.length>0  ){
-    (req as any).files?.attachments?.map((attachment:any)=>{
-      messageFiles.push({
-        url:getStaticFilePath(req,attachment.filename),
-        localPath:getLocalPath(attachment.fileName)
-      })
-    })
-  }
-
+  console.log(selectedChat, "this is all selected chat")
   if (!selectedChat) {
     return res.json({ message: "Chat doesn't exist" }).status(404);
   }
 
-  console.log(req.uploadedKeys,"this is ir")
+  let mediaLink;
+
+  if (req?.uploadedKeys?.length > 0) {
+    mediaLink = req.uploadedKeys.map((media) => {
+      const url = getSignedUrl({
+        url: `https://d2mhnmhkxs9bvr.cloudfront.net/${media.url}`,
+        dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
+        privateKey: process.env.CLOUD_FRONT_KEY_PRIVATE_KEY,
+        keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID
+      })
+
+      return {
+        url: url,
+        type: media.type,
+        name: media.name,
+        size: media.size
+      }
+
+    })
+  }
+
 
   const message = await chatMessage.create({
     sender: new mongoose.Types.ObjectId(req.user._id),
     content: content || "",
     chat: new mongoose.Types.ObjectId(chatId),
     attachments: req.uploadedKeys,
+    mediaLink: mediaLink
   });
+
 
   const Chat = await chat.findByIdAndUpdate(chatId, {
     $set: { lastMessage: message._id },
@@ -102,10 +119,10 @@ const SendMessage = async (req: CustomeRequest, res: Response) => {
     const recvierIdObject = await user
       .findOne({ email: participant })
       .select("_id");
-      
-    const recvierId =await JSON.stringify(recvierIdObject?._id).replace(/"/g, '')
-    
-    
+
+    const recvierId = await JSON.stringify(recvierIdObject?._id).replace(/"/g, '')
+
+
     if (recvierId) {
       emitSocketEvent(
         req,
@@ -116,41 +133,41 @@ const SendMessage = async (req: CustomeRequest, res: Response) => {
     }
   });
 
-    return res.status(200)
-          .json(new ApiResponse(200, { data: recviedMessage }, "Message saved successfully"))
+  return res.status(200)
+    .json(new ApiResponse(200, { data: recviedMessage }, "Message saved successfully"))
 };
 
 
-const getAllMessage=async(req:CustomeRequest,res:Response)=>{
+const getAllMessage = async (req: CustomeRequest, res: Response) => {
   console.log("runnin get all message route")
-  const {chatId}=req.params
+  const { chatId } = req.params
 
-  const selectedChat=await chat.findById(chatId)
+  const selectedChat = await chat.findById(chatId)
 
-  if(!selectedChat){
-    return res.json({message:"Chat is not avlaible"}).status(404)
+  if (!selectedChat) {
+    return res.json({ message: "Chat is not avlaible" }).status(404)
   }
 
-  const messages=await chatMessage.aggregate(
+  const messages = await chatMessage.aggregate(
     [
-     {
-      $match:{
-        chat:new mongoose.Types.ObjectId(chatId)
-      }
-     },
-     ...chatMessageCommonAggregation(),
-    //  {
-    //   $sort:{
-    //     createdAt: -1,
-    //   }
-    //  }
+      {
+        $match: {
+          chat: new mongoose.Types.ObjectId(chatId)
+        }
+      },
+      ...chatMessageCommonAggregation(),
+      //  {
+      //   $sort:{
+      //     createdAt: -1,
+      //   }
+      //  }
     ]
   )
 
   return res.status(200)
-            .json(new ApiResponse(200,{data:messages},"Message Recived Succesfully"))
+    .json(new ApiResponse(200, { data: messages }, "Message Recived Succesfully"))
 
-  
+
 }
 
-export { SendMessage,getAllMessage };
+export { SendMessage, getAllMessage };

@@ -8,7 +8,8 @@ import { user } from "../../../models/user/user.model";
 import { ImageIoConfig } from "../../../util/ImageKitConfrigutaion";
 import ImageKit from "imagekit";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
-import {CustomeRequest} from "../../../types/ReqUserObject"
+import { CustomeRequest } from "../../../types/ReqUserObject"
+import { getSignedUrl } from "@aws-sdk/cloudfront-signer";
 
 interface TokenPair {
     accessToken: string;
@@ -118,7 +119,7 @@ const LoginUser = async (req: Request, res: Response) => {
 
 const RegisterUser = async (req: CustomeRequest, res: Response) => {
     const { name, about, email, phoneNumber, password } = req.body
-    console.log(req.files,"this is all file")
+    console.log(req.files, "this is all file")
 
 
     const existedUser = await user.findOne({ email })
@@ -129,14 +130,34 @@ const RegisterUser = async (req: CustomeRequest, res: Response) => {
             .json({ message: "User with email already exists" })
     }
     else {
+        let mediaLink;
+
+        if (req?.uploadedKeys?.length > 0) {
+            mediaLink = req.uploadedKeys.map((media) => {
+                const url = getSignedUrl({
+                    url: `https://d2mhnmhkxs9bvr.cloudfront.net/${media.url}`,
+                    dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
+                    privateKey: process.env.CLOUD_FRONT_KEY_PRIVATE_KEY,
+                    keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID
+                })
+
+                return {
+                    url: url,
+                    type: media.type,
+                    name: media.name,
+                    size: media.size
+                }
+
+            })
+        }
         const newUser = await user.create({
-            email, password, name, about,attachment:req.uploadedKeys ,phoneNumber 
+            email, password, name, about, attachment: req.uploadedKeys, phoneNumber, mediaLink
         })
 
         const { hashedToken, tokenExpiry, unHashedToken } = await newUser.genrateTemporaryToken()
         newUser.emailVerificationToken = hashedToken
         newUser.emailVerificationExpiry = tokenExpiry
-        
+
         await newUser.save({ validateBeforeSave: true })
         console.log(newUser, "this is new user that was genrated")
 
@@ -177,7 +198,7 @@ const VerifyEmail = async (req: Request, res: Response) => {
     if (!verificationToken) {
 
         res.status(400)
-            .json({message:"Email verification token is Missing"})
+            .json({ message: "Email verification token is Missing" })
     }
 
     let hashedToken = crypto
@@ -191,9 +212,9 @@ const VerifyEmail = async (req: Request, res: Response) => {
     })
 
     if (!verifiedUser) {
-        
+
         return res.status(489)
-            .json({message:"Tokn Is Invalid"})
+            .json({ message: "Tokn Is Invalid" })
     }
 
     verifiedUser.emailVerificationToken = undefined
@@ -301,60 +322,60 @@ const ResetForgottenPassword = async (req: Request, res: Response) => {
 }
 
 
-interface decodedToken extends JwtPayload{
-    _id:string
+interface decodedToken extends JwtPayload {
+    _id: string
 }
 
-const refreshAcessToken=async(req:Request,res:Response)=>{
-    const incomingRefreshToken=req.cookies.refreshToken||req.body.refreshToken
+const refreshAcessToken = async (req: Request, res: Response) => {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
-    if(!incomingRefreshToken){
+    if (!incomingRefreshToken) {
         return res.status(401)
-            .json({message:"Unauthorized request"})
+            .json({ message: "Unauthorized request" })
     }
 
-    try{
+    try {
 
-        const REFRESH_TOKEN_SCERET_KEY:Secret=process.env.REFRESH_TOKEN_SCERET_KEY as Secret
-        const decodedToken=jwt.verify(
+        const REFRESH_TOKEN_SCERET_KEY: Secret = process.env.REFRESH_TOKEN_SCERET_KEY as Secret
+        const decodedToken = jwt.verify(
             incomingRefreshToken,
             REFRESH_TOKEN_SCERET_KEY
-        )as decodedToken
+        ) as decodedToken
 
-        const refresh_user=await user.findOne({_id:decodedToken._id})
+        const refresh_user = await user.findOne({ _id: decodedToken._id })
 
-        if(!refresh_user){
+        if (!refresh_user) {
             return res.status(401)
                 .json("Invalid refresh toj=ken")
         }
 
-        if(incomingRefreshToken!==refresh_user?.refreshToken){
+        if (incomingRefreshToken !== refresh_user?.refreshToken) {
             return res.status(401)
                 .json("Refresh token is expired or used")
         }
 
-        const options={
-            httpOnly:true
+        const options = {
+            httpOnly: true
         }
 
-        const {accessToken,refreshToken:newRefreshToken}=await genrateAcessAndRefreshToken(refresh_user?._id)
+        const { accessToken, refreshToken: newRefreshToken } = await genrateAcessAndRefreshToken(refresh_user?._id)
 
         return res.status(200)
-                  .cookie("accesToken",accessToken)
-                  .cookie("refreshToken",newRefreshToken)
-                  .json(
-                    new ApiResponse(
-                        200,
-                        {accessToken,refreshToken:newRefreshToken},
-                        "Acess token refresed"
-                    )
-                  )
+            .cookie("accesToken", accessToken)
+            .cookie("refreshToken", newRefreshToken)
+            .json(
+                new ApiResponse(
+                    200,
+                    { accessToken, refreshToken: newRefreshToken },
+                    "Acess token refresed"
+                )
+            )
 
     }
-    catch(err){
-        console.log("this is error->",err)
+    catch (err) {
+        console.log("this is error->", err)
         return res.status(401)
-                  .json({message:`Invalid refresh toke ${err}`})
+            .json({ message: `Invalid refresh toke ${err}` })
     }
 }
 

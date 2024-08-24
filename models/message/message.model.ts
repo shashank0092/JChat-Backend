@@ -4,6 +4,7 @@ interface ChatMessageDocument extends Document{
     sender:Schema.Types.ObjectId,
     content:string,
     attachments:Attachment[],
+    mediaLink:MediaLink[],
     chat:Types.ObjectId
 }
 
@@ -11,6 +12,13 @@ interface Attachment {
     url: string;
     type: string;
     name:string;
+    size:Number
+}
+
+interface MediaLink{
+    url:string,
+    type:string,
+    name:string,
     size:Number
 }
 
@@ -31,7 +39,29 @@ const attachmentSchema = new Schema<Attachment>({
         type:Number,
         required:true
     }
-  });
+});
+
+const mediaLinkSchema=new Schema<MediaLink>({
+    url: {
+        type: String,
+        required: true,
+      },
+      type: {
+        type: String,
+        required: true,
+      },
+      name:{
+          type:String,
+          required:true
+      },
+      size:{
+          type:Number,
+          required:true
+    }
+   
+},
+{timestamps:true}
+)
 
 
 const chatMessageSchema=new Schema<ChatMessageDocument>(
@@ -45,6 +75,10 @@ const chatMessageSchema=new Schema<ChatMessageDocument>(
         },
         attachments:{
             type:[attachmentSchema],
+            default:[]
+        },
+        mediaLink:{
+            type:[mediaLinkSchema],
             default:[]
         },
         chat:{

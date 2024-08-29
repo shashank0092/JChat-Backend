@@ -136,7 +136,7 @@ const RegisterUser = async (req: CustomeRequest, res: Response) => {
             mediaLink = req.uploadedKeys.map((media) => {
                 const url = getSignedUrl({
                     url: `https://d2mhnmhkxs9bvr.cloudfront.net/${media.url}`,
-                    dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
+                    dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).toISOString(),
                     privateKey: process.env.CLOUD_FRONT_KEY_PRIVATE_KEY,
                     keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID
                 })

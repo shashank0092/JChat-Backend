@@ -70,7 +70,7 @@ const SearchUser = async (req: Request, res: Response) => {
             {
                 $project:{
                     name:1,
-                    imagePath:1,
+                    mediaLink:1,
                     email:1
                 }
             }

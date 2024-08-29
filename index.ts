@@ -3,6 +3,7 @@ import morgan from "morgan"
 import dotenv from "dotenv"
 import { httpServer } from "./app"
 import connectDB from "./db/conn"
+// import "./jobs/UpdateMediaUrl"
 
 
 dotenv.config({
